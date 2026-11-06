@@ -115,10 +115,14 @@
   .lb-idx{font-size:12px;color:var(--ink3)}
   .lb-close{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink2);font-size:19px;cursor:pointer;line-height:1}
   .lb-close:hover{border-color:var(--gold);color:var(--gold2)}
-  .lb-stage{flex:1;min-height:0;display:grid;place-items:center;padding:18px;position:relative}
-  .lb-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;box-shadow:0 0 60px rgba(0,0,0,.7)}
+  .lb-stage{flex:1;min-height:0;display:grid;place-items:center;padding:18px;position:relative;overflow:hidden}
+  /* ⚠ 不能用 max-width/max-height:100%：grid item 的百分比尺寸相对 auto 的行盒解析（循环依赖 ⇒ 视为 none），
+     高清图固有 832x1216 会按原尺寸铺开、直接顶出视口（缩略图小，所以"换图瞬间才炸"）。
+     改成绝对定位 + 四边内缩，尺寸由 .lb-stage 决定，怎么换图都不会溢出。 */
+  .lb-stage img{position:absolute;inset:18px;width:calc(100% - 36px);height:calc(100% - 36px);
+                object-fit:contain;border-radius:6px;box-shadow:0 0 60px rgba(0,0,0,.7)}
   .nav{
-    position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;
+    position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;z-index:2;
     border:1px solid var(--line);border-radius:6px;background:rgba(20,24,33,.8);
     color:var(--ink2);font-size:22px;cursor:pointer;
   }
