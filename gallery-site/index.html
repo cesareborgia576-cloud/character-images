@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>天元一界 · 立绘预览</title>
+<meta name="description" content="角色立绘预览，仅供游玩前查看。">
+<style>
+  :root{
+    --bg:#0d0f14; --bg2:#141821; --card:#1b202b; --card2:#222836;
+    --line:#2c3342; --ink:#e8e2d4; --ink2:#a7a394; --ink3:#6f6d67;
+    --gold:#c9a961; --gold2:#e2c784; --jade:#6f9e8e;
+    --shadow:0 10px 34px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(201,169,97,.09), transparent 70%),
+      radial-gradient(ellipse 60% 30% at 100% 100%, rgba(111,158,142,.05), transparent 70%);
+    min-height:100vh;
+  }
+  .wrap{max-width:1440px;margin:0 auto;padding:0 22px 90px}
+
+  /* ── 顶栏 ── */
+  header{padding:52px 0 26px;text-align:center;position:relative}
+  header::after{
+    content:"";display:block;width:110px;height:1px;margin:22px auto 0;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.65;
+  }
+  .eyebrow{font-size:11px;letter-spacing:.42em;color:var(--gold);opacity:.8;margin-bottom:14px}
+  h1{font-size:32px;font-weight:500;letter-spacing:.16em;margin:0 0 10px;color:var(--ink)}
+  h1 .dot{color:var(--gold);margin:0 12px;font-size:20px;vertical-align:3px}
+  .sub{font-size:13px;color:var(--ink2);letter-spacing:.06em;line-height:1.8;margin:0}
+  .stats{margin-top:18px;font-size:12px;color:var(--ink3);letter-spacing:.08em}
+  .stats b{color:var(--gold2);font-weight:600;font-size:15px;padding:0 3px}
+
+  /* ── 工具条 ── */
+  .toolbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;
+    padding:14px 0 16px;margin-bottom:8px;
+    background:linear-gradient(180deg,var(--bg) 72%,rgba(13,15,20,0));
+  }
+  .search{
+    width:min(320px,100%);height:38px;padding:0 14px;
+    background:var(--card);border:1px solid var(--line);border-radius:19px;
+    color:var(--ink);font-size:13px;outline:none;font-family:inherit;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .search::placeholder{color:var(--ink3)}
+  .search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,169,97,.1)}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+  .chip{
+    height:34px;padding:0 15px;border-radius:17px;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);color:var(--ink2);
+    font-size:12px;font-family:inherit;letter-spacing:.04em;
+    transition:all .18s;white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--gold);color:var(--ink)}
+  .chip.on{background:rgba(201,169,97,.15);border-color:var(--gold);color:var(--gold2)}
+  .count{margin-left:auto;font-size:12px;color:var(--ink3);white-space:nowrap}
+
+  /* ── 分区 ── */
+  .section{margin-top:36px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .sec-title{font-size:18px;font-weight:500;letter-spacing:.12em;color:var(--gold2);margin:0}
+  .sec-note{font-size:12px;color:var(--ink3);letter-spacing:.04em}
+  .group{margin:26px 0 12px}
+  .group-title{font-size:12px;color:var(--jade);letter-spacing:.2em;margin:0 0 12px;padding-left:11px;border-left:2px solid var(--jade)}
+
+  /* ── 网格 ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:22px 16px}
+  .tile{
+    position:relative;display:block;padding:0;cursor:pointer;overflow:hidden;
+    background:var(--card);border:1px solid var(--line);border-radius:9px;
+    aspect-ratio:3/4;text-align:left;font-family:inherit;color:inherit;
+    transition:transform .2s,border-color .2s,box-shadow .2s;
+  }
+  .tile:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:var(--shadow)}
+  .tile img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .4s}
+  .tile img.ready{opacity:1}
+  .tile .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink3);font-size:11px;letter-spacing:.1em}
+  .tile .meta{
+    position:absolute;left:0;right:0;bottom:0;padding:22px 10px 9px;
+    background:linear-gradient(180deg,transparent,rgba(8,10,14,.93) 52%);
+    display:flex;align-items:flex-end;justify-content:space-between;gap:6px;
+  }
+  .tile .nm{font-size:13px;letter-spacing:.06em;color:#fff;text-shadow:0 1px 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .no{font-size:10px;color:var(--gold2);opacity:.9;white-space:nowrap}
+  .tile .tag{
+    position:absolute;top:8px;left:8px;padding:3px 7px;border-radius:4px;
+    font-size:10px;letter-spacing:.06em;background:rgba(13,15,20,.78);
+    border:1px solid rgba(201,169,97,.35);color:var(--gold2);backdrop-filter:blur(4px);
+  }
+  .tile .tag.pkg{left:auto;right:8px;border-color:rgba(111,158,142,.4);color:#a8cfc2}
+  /* 有多张立绘的：用两层外投影模拟「一叠纸」。
+     ⚠ .tile 有 overflow:hidden，::before/::after 会被裁掉 ⇒ 只能走 box-shadow。 */
+  .tile.stack{box-shadow:3px 3px 0 -1px var(--card), 3px 3px 0 0 var(--line),
+                         6px 6px 0 -1px var(--card2), 6px 6px 0 0 var(--line)}
+  .tile.stack:hover{box-shadow:4px 4px 0 -1px var(--card), 4px 4px 0 0 var(--gold),
+                               8px 8px 0 -1px var(--card2), 8px 8px 0 0 var(--line)}
+  .tile.broken{cursor:default}
+  .tile.broken:hover{transform:none;border-color:var(--line);box-shadow:none}
+  .empty{text-align:center;color:var(--ink3);font-size:13px;padding:70px 0}
+
+  /* ── 大图弹层 ── */
+  .lb{position:fixed;inset:0;z-index:50;display:none;background:rgba(6,8,11,.96);backdrop-filter:blur(10px)}
+  .lb.open{display:flex;flex-direction:column}
+  .lb-bar{height:56px;display:flex;align-items:center;gap:14px;padding:0 20px;flex:none;border-bottom:1px solid rgba(255,255,255,.07)}
+  .lb-name{font-size:15px;letter-spacing:.1em;color:var(--gold2)}
+  .lb-idx{font-size:12px;color:var(--ink3)}
+  .lb-close{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink2);font-size:19px;cursor:pointer;line-height:1}
+  .lb-close:hover{border-color:var(--gold);color:var(--gold2)}
+  .lb-stage{flex:1;min-height:0;display:grid;place-items:center;padding:18px;position:relative}
+  .lb-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;box-shadow:0 0 60px rgba(0,0,0,.7)}
+  .nav{
+    position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;
+    border:1px solid var(--line);border-radius:6px;background:rgba(20,24,33,.8);
+    color:var(--ink2);font-size:22px;cursor:pointer;
+  }
+  .nav:hover{border-color:var(--gold);color:var(--gold2)}
+  .nav.prev{left:16px}.nav.next{right:16px}
+  .nav:disabled{opacity:.22;cursor:default}
+  .lb-foot{flex:none;text-align:center;padding:12px 20px 20px;font-size:11px;color:var(--ink3);letter-spacing:.06em}
+  .thumbs{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  .thumbs img{width:42px;height:56px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer;opacity:.5;transition:opacity .2s,border-color .2s}
+  .thumbs img:hover{opacity:1}
+  .thumbs img.on{opacity:1;border-color:var(--gold)}
+
+  /* ── 进入确认（只弹一次） ── */
+  .gate{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(8,10,14,.97);backdrop-filter:blur(14px);padding:24px}
+  .gate.hide{display:none}
+  .gate-box{max-width:430px;width:100%;text-align:center;padding:38px 30px;border:1px solid var(--line);border-radius:12px;background:var(--bg2);box-shadow:var(--shadow)}
+  .gate-mark{font-size:11px;letter-spacing:.4em;color:var(--gold);margin-bottom:20px}
+  .gate-box h2{font-size:20px;font-weight:500;letter-spacing:.12em;margin:0 0 18px;color:var(--ink)}
+  .gate-box p{font-size:13px;color:var(--ink2);line-height:2;margin:0 0 26px;letter-spacing:.03em}
+  .gate-btn{width:100%;height:44px;border-radius:22px;border:1px solid var(--gold);background:rgba(201,169,97,.13);color:var(--gold2);font-size:14px;letter-spacing:.14em;cursor:pointer;font-family:inherit;transition:background .2s}
+  .gate-btn:hover{background:rgba(201,169,97,.24)}
+  .gate-tip{font-size:11px;color:var(--ink3);margin-top:16px;letter-spacing:.04em}
+
+  footer{text-align:center;margin-top:60px;font-size:11px;color:var(--ink3);letter-spacing:.08em;line-height:2}
+
+  @media(max-width:640px){
+    .wrap{padding:0 13px 60px}
+    header{padding:34px 0 20px}
+    h1{font-size:24px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:18px 11px}
+    .toolbar{gap:8px;padding:10px 0 12px}
+    .count{width:100%;text-align:center;margin:0}
+    .nav{width:34px;height:50px;font-size:18px}
+    .nav.prev{left:6px}.nav.next{right:6px}
+    .tile .nm{font-size:11px}
+  }
+</style>
+</head>
+<body>
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="进入确认">
+  <div class="gate-box">
+    <div class="gate-mark">TIANYUAN · PORTRAIT ARCHIVE</div>
+    <h2>天元一界 · 立绘预览</h2>
+    <p>本页收录的是一张<b>成人向</b>角色卡的角色立绘，部分图片带有露骨内容。<br>请确认你已成年，且自愿查看。</p>
+    <button class="gate-btn" id="gateBtn">我已成年，进入查看</button>
+    <div class="gate-tip">本次选择会被记住，之后不再提示</div>
+  </div>
+</div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TIANYUAN · PORTRAIT ARCHIVE</div>
+    <h1>天元一界<span class="dot">·</span>立绘预览</h1>
+    <p class="sub">游玩前先看看这些角色长什么样<br>本页只收录角色立绘，不含任何其他内容</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="toolbar">
+    <input class="search" id="search" type="search" placeholder="搜索角色名…" autocomplete="off">
+    <div class="chips" id="chips"></div>
+    <span class="count" id="count"></span>
+  </div>
+
+  <main id="main"></main>
+
+  <footer>
+    图片来自角色卡内置图库 · 仅供预览<br>
+    立绘随卡版本更新，实际游玩内容以角色卡为准
+  </footer>
+</div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="立绘大图">
+  <div class="lb-bar">
+    <span class="lb-name" id="lbName"></span>
+    <span class="lb-idx" id="lbIdx"></span>
+    <button class="lb-close" id="lbClose" aria-label="关闭">×</button>
+  </div>
+  <div class="lb-stage">
+    <button class="nav prev" id="lbPrev" aria-label="上一张">‹</button>
+    <img id="lbImg" alt="">
+    <button class="nav next" id="lbNext" aria-label="下一张">›</button>
+  </div>
+  <div class="lb-foot">
+    左右方向键翻页 · ESC 关闭
+    <div class="thumbs" id="lbThumbs"></div>
+  </div>
+</div>
+
+<script src="./gallery-data.js"></script>
+<script>
+(function(){
+  'use strict';
+  /* 进入确认：只在第一次弹，之后记住 */
+  (function(){
+    var g = document.getElementById('gate');
+    try { if (localStorage.getItem('xz_gallery_age_ok') === '1'){ g.classList.add('hide'); return; } } catch(e){}
+    document.getElementById('gateBtn').onclick = function(){
+      try { localStorage.setItem('xz_gallery_age_ok','1'); } catch(e){}
+      g.classList.add('hide');
+    };
+  })();
+
+  var D = window.XZ_GALLERY_DATA || {rows:[]};
+  var MAIN = D.rows.filter(function(r){ return !r.dlc; });
+  var DLC  = D.rows.filter(function(r){ return  r.dlc; });
+  var PKG_ORDER = ['斗罗','斗破','大主宰','武动'];
+
+  var total = D.rows.reduce(function(n,r){ return n + r.pics.length; },0);
+  document.getElementById('stats').innerHTML =
+    '共 <b>' + D.rows.length + '</b> 位角色 · <b>' + total + '</b> 张立绘';
+
+  var filter = 'all', kw = '';
+  var chips = document.getElementById('chips');
+  var FILTERS = [
+    {k:'all',  t:'全部'},
+    {k:'main', t:'本卡角色'},
+    {k:'dlc',  t:'DLC 角色'}
+  ];
+  FILTERS.forEach(function(f){
+    var b = document.createElement('button');
+    b.className = 'chip' + (f.k==='all'?' on':'');
+    b.textContent = f.t;
+    b.onclick = function(){
+      filter = f.k;
+      [].forEach.call(chips.children,function(c){ c.classList.remove('on'); });
+      b.classList.add('on');
+      render();
+    };
+    chips.appendChild(b);
+  });
+
+  document.getElementById('search').addEventListener('input',function(e){
+    kw = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  function match(r){
+    if (kw && (r.name + ' ' + (r.pkg||'')).toLowerCase().indexOf(kw) === -1) return false;
+    if (filter === 'main' &&  r.dlc) return false;
+    if (filter === 'dlc'  && !r.dlc) return false;
+    return true;
+  }
+
+  /* 网格缩略图：走本地 thumb（2.9MB，秒开）；本地万一缺了才退回 CDN 原图。
+     本地图不会受 CDN/代理影响 —— 这是「给玩家先看得见」的保底。 */
+  function bindImg(img, pic){
+    var stage = 0;
+    img.addEventListener('load',function(){ img.classList.add('ready'); });
+    img.addEventListener('error',function(){
+      if (stage === 0){                     /* 本地 thumb 缺 → 试 CDN 主域名 */
+        stage = 1; img.src = pic.url;
+      } else if (stage === 1 && pic.fallback){
+        stage = 2; img.src = pic.fallback; /* 主域名挂 → 试原镜像 */
+      } else {
+        var t = img.closest('.tile');
+        if (t){ t.classList.add('broken'); t.querySelector('.ph').textContent = '图片暂不可用'; }
+        else { img.alt = '图片暂不可用'; }
+      }
+    });
+    img.src = pic.thumb || pic.url;
+  }
+
+  /* ★ 一个人只占一个格子：她名下的几张立绘合成一叠，点开在弹层里翻。
+     （曾做成「一张图一个格子」⇒ 司幽怜出现 3 次，作者当场指出。） */
+  function tileHTML(r){
+    var n = r.pics.length;
+    return '<button class="tile' + (n>1 ? ' stack' : '') + '" data-n="' + encodeURIComponent(r.name) + '">' +
+             '<div class="ph">载入中…</div>' +
+             '<img alt="' + r.name + ' 立绘">' +
+             (n>1 ? '<span class="tag">' + n + ' 张立绘</span>' : '') +
+             (r.dlc && r.pkg ? '<span class="tag pkg">' + r.pkg + '</span>' : '') +
+             '<span class="meta"><span class="nm">' + r.name + '</span>' +
+               (n>1 ? '<span class="no">点开翻看</span>' : '') +
+             '</span>' +
+           '</button>';
+  }
+
+  function render(){
+    var main = document.getElementById('main');
+    var shown = 0, shownPics = 0, html = '';
+
+    function grid(rows){
+      var g = '';
+      rows.forEach(function(r){
+        g += tileHTML(r);
+        shown++;
+        shownPics += r.pics.length;
+      });
+      return '<div class="grid">' + g + '</div>';
+    }
+    function section(title, note, body){
+      return '<section class="section"><div class="sec-head">' +
+               '<h2 class="sec-title">' + title + '</h2>' +
+               '<span class="sec-note">' + note + '</span></div>' + body + '</section>';
+    }
+
+    /* 本卡角色 */
+    var a = MAIN.filter(match);
+    if (a.length && filter !== 'dlc'){
+      html += section('本卡角色', a.length + ' 位 / ' + a.reduce(function(n,r){return n+r.pics.length;},0) + ' 张', grid(a));
+    }
+
+    /* DLC：按包分组，包名按工程里四大包的顺序 */
+    var b = DLC.filter(match);
+    if (b.length && filter !== 'main'){
+      var byPkg = {};
+      b.forEach(function(r){ var k = r.pkg || '其他'; (byPkg[k] = byPkg[k] || []).push(r); });
+      var keys = Object.keys(byPkg).sort(function(x,y){
+        var ix = PKG_ORDER.indexOf(x), iy = PKG_ORDER.indexOf(y);
+        return (ix<0?99:ix) - (iy<0?99:iy) || x.localeCompare(y,'zh');
+      });
+      var inner = keys.map(function(k){
+        return '<div class="group"><p class="group-title">' + k + ' · ' + byPkg[k].length + ' 位</p>' +
+               grid(byPkg[k]) + '</div>';
+      }).join('');
+      html += section('DLC 角色', b.length + ' 位 / ' + b.reduce(function(n,r){return n+r.pics.length;},0) + ' 张 · 需在卡内开启对应 DLC', inner);
+    }
+
+    if (!shown) html = '<div class="empty">没找到匹配的角色，换个关键词试试</div>';
+    main.innerHTML = html;
+    document.getElementById('count').textContent = '显示 ' + shown + ' 位 · ' + shownPics + ' 张';
+
+    /* 每人只挂一张封面（她的第 1 张），懒加载 37 张即可 */
+    var imgs = main.querySelectorAll('.tile img');
+    var byName = {};
+    D.rows.forEach(function(r){ byName[r.name] = r; });
+    var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if (!e.isIntersecting) return;
+        var img = e.target, tile = img.closest('.tile');
+        var r = byName[decodeURIComponent(tile.dataset.n)];
+        var p = r && r.pics[0];
+        if (p && !img.src) bindImg(img, p);
+        io.unobserve(img);
+      });
+    }, {rootMargin:'300px'}) : null;
+    imgs.forEach(function(img){
+      if (io) io.observe(img);
+      else {
+        var t = img.closest('.tile'), r = byName[decodeURIComponent(t.dataset.n)];
+        if (r) bindImg(img, r.pics[0]);
+      }
+    });
+
+    main.querySelectorAll('.tile:not(.broken)').forEach(function(t){
+      t.addEventListener('click',function(){ openLB(decodeURIComponent(t.dataset.n), 0); });
+    });
+  }
+
+  /* ── 大图 ── */
+  var lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg');
+  var curName = '', curIdx = 0;
+  function rowByName(n){ for (var i=0;i<D.rows.length;i++) if (D.rows[i].name===n) return D.rows[i]; return null; }
+  function showAt(i){
+    var r = rowByName(curName); if (!r) return;
+    curIdx = Math.max(0, Math.min(r.pics.length-1, i));
+    var p = r.pics[curIdx], tried = false;
+    lbImg.classList.remove('ready');
+    lbImg.onerror = function(){
+      if (!tried && p.fallback){ tried = true; lbImg.src = p.fallback; }
+      else if (!tried && p.thumb){ tried = true; lbImg.src = p.thumb; }
+      else { lbImg.alt = '图片暂不可用'; }
+    };
+    /* 大图先用本地缩略图顶上（秒出），后台静默换 CDN 高清；CDN 慢也不会空白 */
+    var token = r.name + '#' + curIdx;
+    lbImg.src = p.thumb || p.url;
+    if (p.thumb && p.thumb !== p.url){
+      var hi = new Image();
+      hi.onload = function(){ if (curName + '#' + curIdx === token) lbImg.src = p.url; };
+      hi.onerror = function(){
+        if (p.fallback && curName + '#' + curIdx === token){
+          var h2 = new Image();
+          h2.onload = function(){ if (curName + '#' + curIdx === token) lbImg.src = p.fallback; };
+          h2.src = p.fallback;
+        }
+      };
+      hi.src = p.url;
+    }
+    lbImg.alt = r.name + ' 立绘 ' + (curIdx+1);
+    document.getElementById('lbName').textContent = r.name;
+    document.getElementById('lbIdx').textContent = (curIdx+1) + ' / ' + r.pics.length;
+    document.getElementById('lbPrev').disabled = curIdx===0;
+    document.getElementById('lbNext').disabled = curIdx===r.pics.length-1;
+    var th = document.getElementById('lbThumbs');
+    th.innerHTML = '';
+    if (r.pics.length>1){
+      r.pics.forEach(function(pp,j){
+        var t = document.createElement('img');
+        t.src = pp.thumb || pp.url; t.className = j===curIdx?'on':'';
+        t.onclick = function(){ showAt(j); };
+        t.onerror = function(){ if (pp.url && (pp.thumb || pp.url) !== pp.url) t.src = pp.url; };
+        th.appendChild(t);
+      });
+    }
+  }
+  function openLB(n,i){ curName=n; lb.classList.add('open'); document.body.style.overflow='hidden'; showAt(i); }
+  function closeLB(){ lb.classList.remove('open'); document.body.style.overflow=''; lbImg.src=''; }
+  document.getElementById('lbClose').onclick = closeLB;
+  document.getElementById('lbPrev').onclick = function(){ showAt(curIdx-1); };
+  document.getElementById('lbNext').onclick = function(){ showAt(curIdx+1); };
+  lb.addEventListener('click',function(e){ if (e.target===lb || e.target.className==='lb-stage') closeLB(); });
+  document.addEventListener('keydown',function(e){
+    if (!lb.classList.contains('open')) return;
+    if (e.key==='Escape') closeLB();
+    if (e.key==='ArrowLeft') showAt(curIdx-1);
+    if (e.key==='ArrowRight') showAt(curIdx+1);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
